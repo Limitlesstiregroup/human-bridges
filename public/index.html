@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Human Bridges</title>
+  <style>
+    body { font-family: Inter, system-ui, sans-serif; margin:0; background:#0b1020; color:#e6ebff; }
+    .wrap { max-width:1200px; margin:0 auto; padding:18px; }
+    h1 { margin:0 0 6px; }
+    .sub { opacity:.85; margin-bottom:14px; }
+    .grid { display:grid; grid-template-columns: 320px 1fr; gap:14px; }
+    .card { background:#141c34; border:1px solid #2b3a66; border-radius:12px; padding:12px; }
+    .metrics { display:grid; grid-template-columns: repeat(2,1fr); gap:8px; }
+    .metric { background:#0f1630; border-radius:8px; padding:8px; }
+    label { display:block; font-size:12px; opacity:.9; margin:8px 0 3px; }
+    input[type=range] { width:100%; }
+    canvas { width:100%; background:#0f1630; border-radius:10px; display:block; }
+    .row { display:flex; gap:8px; flex-wrap:wrap; }
+    button { background:#2c79ff; border:0; color:white; padding:8px 10px; border-radius:8px; cursor:pointer; }
+    .tiny { font-size:12px; opacity:.8; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Human Bridges</h1>
+    <div class="sub">Interactive map of how identity bubbles form — and how we can reconnect.</div>
+    <div class="grid">
+      <div class="card">
+        <h3>Manipulation Levers</h3>
+        <label>Outrage Algorithm <span id="v_outrage"></span></label>
+        <input id="outrage" type="range" min="0" max="100" value="65" />
+        <label>Fear Messaging <span id="v_fear"></span></label>
+        <input id="fear" type="range" min="0" max="100" value="60" />
+        <label>Economic Stress <span id="v_stress"></span></label>
+        <input id="stress" type="range" min="0" max="100" value="55" />
+        <label>Echo Chambers <span id="v_echo"></span></label>
+        <input id="echo" type="range" min="0" max="100" value="70" />
+
+        <h3 style="margin-top:12px;">Bridge Actions</h3>
+        <label>Shared Goals <span id="v_goals"></span></label>
+        <input id="goals" type="range" min="0" max="100" value="30" />
+        <label>Cross-Group Contact <span id="v_contact"></span></label>
+        <input id="contact" type="range" min="0" max="100" value="25" />
+        <label>Empathy Storytelling <span id="v_empathy"></span></label>
+        <input id="empathy" type="range" min="0" max="100" value="20" />
+
+        <div class="row" style="margin-top:10px;">
+          <button data-preset="calm">Calm Society</button>
+          <button data-preset="election">Election Season</button>
+          <button data-preset="bridge">Bridge Build</button>
+        </div>
+        <p class="tiny">Goal: Show systems, not blame people. Turn up bridge actions to see separation shrink.</p>
+      </div>
+
+      <div>
+        <div class="card" style="margin-bottom:12px;">
+          <div class="metrics">
+            <div class="metric">Fragmentation Score: <b id="m_frag">0</b></div>
+            <div class="metric">Social Trust Index: <b id="m_trust">0</b></div>
+            <div class="metric">Cross-Bubble Contact: <b id="m_cross">0%</b></div>
+            <div class="metric">Manipulation Pressure: <b id="m_manip">0</b></div>
+          </div>
+        </div>
+        <div class="card" style="margin-bottom:12px;">
+          <h3 style="margin-top:0;">Division Heatmap</h3>
+          <canvas id="heat" width="820" height="260"></canvas>
+        </div>
+        <div class="card">
+          <h3 style="margin-top:0;">Identity Bubble Field</h3>
+          <canvas id="bubbles" width="820" height="360"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>
