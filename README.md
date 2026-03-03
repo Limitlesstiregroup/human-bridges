@@ -34,6 +34,7 @@ The server starts on `http://localhost:4380` by default.
 | Variable | Required | Default | Description |
 | --- | --- | --- | --- |
 | `PORT` | No | `4380` | HTTP port for the API + static frontend |
+| `MAX_BODY_BYTES` | No | `1048576` | Max request body size in bytes for JSON POST endpoints |
 
 ## Quality checks
 

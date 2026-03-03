@@ -54,7 +54,12 @@ function validateState(state) {
 
 async function readBody(req) {
   const chunks = [];
-  for await (const chunk of req) chunks.push(chunk);
+  let totalBytes = 0;
+  for await (const chunk of req) {
+    totalBytes += chunk.length;
+    if (totalBytes > MAX_BODY_BYTES) return 'PAYLOAD_TOO_LARGE';
+    chunks.push(chunk);
+  }
   if (chunks.length === 0) return {};
   try {
     return JSON.parse(Buffer.concat(chunks).toString('utf8'));
@@ -80,6 +85,8 @@ function matchRoute(pattern, pathname) {
   return params;
 }
 
+const MAX_BODY_BYTES = Number(process.env.MAX_BODY_BYTES || 1024 * 1024);
+
 const MIME = {
   '.html': 'text/html; charset=utf-8',
   '.js': 'text/javascript; charset=utf-8',
@@ -89,8 +96,8 @@ const MIME = {
 
 async function serveStatic(pathname, res) {
   const rel = pathname === '/' ? '/index.html' : pathname;
-  const filePath = path.join(PUBLIC_DIR, rel);
-  if (!filePath.startsWith(PUBLIC_DIR)) {
+  const filePath = path.resolve(PUBLIC_DIR, "." + rel);
+  if (!filePath.startsWith(PUBLIC_DIR + path.sep) && filePath !== path.join(PUBLIC_DIR, 'index.html')) {
     sendJson(res, 403, { error: 'forbidden' });
     return;
   }
@@ -119,6 +126,7 @@ function createServer() {
 
     if (req.method === 'POST' && pathname === '/api/scenarios') {
       const body = await readBody(req);
+      if (body === 'PAYLOAD_TOO_LARGE') return sendJson(res, 413, { error: 'payload too large' });
       if (!body) return sendJson(res, 400, { error: 'invalid JSON body' });
       const stateError = validateState(body.state);
       if (stateError) return sendJson(res, 400, { error: stateError });
@@ -183,6 +191,7 @@ function createServer() {
 
     if (req.method === 'POST' && pathname === '/api/reports') {
       const body = await readBody(req);
+      if (body === 'PAYLOAD_TOO_LARGE') return sendJson(res, 413, { error: 'payload too large' });
       if (!body) return sendJson(res, 400, { error: 'invalid JSON body' });
       const reason = typeof body.reason === 'string' ? body.reason.trim() : '';
       if (!reason) return sendJson(res, 400, { error: 'reason is required' });
@@ -242,8 +251,9 @@ function startServer(port = Number(process.env.PORT || 4380)) {
 }
 
 if (require.main === module) {
-  startServer().then(() => {
-    process.stdout.write('Human Bridges server running on http://localhost:4380\n');
+  const port = Number(process.env.PORT || 4380);
+  startServer(port).then(() => {
+    process.stdout.write(`Human Bridges server running on http://localhost:${port}\n`);
   });
 }
 

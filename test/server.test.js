@@ -121,3 +121,30 @@ test('validation rejects incomplete payloads', async () => {
     await ctx.close();
   }
 });
+
+test('static serving does not expose server source via traversal-like paths', async () => {
+  const ctx = await setup();
+  try {
+    const traversal = await fetch(`${ctx.baseUrl}/../server.js`);
+    assert.equal(traversal.status, 404);
+    const body = await traversal.text();
+    assert.match(body, /not found/);
+  } finally {
+    await ctx.close();
+  }
+});
+
+test('oversized JSON payloads are rejected', async () => {
+  const ctx = await setup();
+  try {
+    const bigNotes = 'x'.repeat(1024 * 1024 + 100);
+    const tooLarge = await fetch(`${ctx.baseUrl}/api/scenarios`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ name: 'too big', notes: bigNotes, state: baseState() }),
+    });
+    assert.equal(tooLarge.status, 413);
+  } finally {
+    await ctx.close();
+  }
+});
