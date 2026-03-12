@@ -3,186 +3,145 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Human Bridges - What Divides Us</title>
+  <title>Human Bridges - Division Heatmap</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      background: #0d1117;
-      color: #e6edf3;
+      background: #181818;
+      color: #e0e0e0;
       min-height: 100vh;
+      overflow: hidden;
     }
 
     header {
-      text-align: center;
-      padding: 25px 20px 15px;
-      background: linear-gradient(180deg, #161b22 0%, #0d1117 100%);
-      border-bottom: 1px solid #21262d;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 20px;
+      background: #1a1a1a;
+      border-bottom: 1px solid #333;
     }
 
-    h1 {
-      font-size: clamp(1.8rem, 4vw, 2.5rem);
+    .logo {
+      font-size: 1.3rem;
       font-weight: 700;
-      letter-spacing: 0.05em;
-      margin-bottom: 8px;
     }
 
-    h1 span {
-      background: linear-gradient(135deg, #ff6b6b, #feca57, #48dbfb, #ff9ff3);
+    .logo span {
+      background: linear-gradient(135deg, #00c853, #69f0ae);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
     }
 
-    .subtitle {
-      color: #8b949e;
-      font-size: 1rem;
-      max-width: 600px;
-      margin: 0 auto;
+    .nav {
+      display: flex;
+      gap: 20px;
+      font-size: 0.9rem;
     }
 
-    /* Heatmap grid */
-    .heatmap-container {
-      max-width: 1400px;
-      margin: 20px auto;
-      padding: 0 15px;
+    .nav a {
+      color: #888;
+      text-decoration: none;
+      transition: color 0.2s;
     }
 
-    .heatmap-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-      gap: 6px;
+    .nav a:hover, .nav a.active {
+      color: #fff;
     }
 
-    .heatmap-cell {
+    /* Treemap */
+    #treemap {
+      width: 100%;
+      height: calc(100vh - 120px);
       position: relative;
-      border-radius: 8px;
-      padding: 15px 12px;
+    }
+
+    .treemap-block {
+      position: absolute;
+      border: 1px solid rgba(0,0,0,0.5);
+      overflow: hidden;
       cursor: pointer;
-      transition: all 0.2s ease;
-      min-height: 80px;
+      transition: all 0.15s ease;
       display: flex;
       flex-direction: column;
-      justify-content: space-between;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
     }
 
-    .heatmap-cell:hover {
-      transform: scale(1.03);
+    .treemap-block:hover {
+      border: 2px solid #fff !important;
       z-index: 10;
-      box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+      transform: scale(1.01);
     }
 
-    .heatmap-cell .name {
-      font-weight: 600;
-      font-size: 0.85rem;
-      margin-bottom: 5px;
-      color: inherit;
-    }
-
-    .heatmap-cell .value {
-      font-size: 1.4rem;
+    .treemap-block .name {
       font-weight: 700;
+      font-size: clamp(10px, 2vw, 24px);
+      color: #fff;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+      line-height: 1.2;
+      padding: 4px;
     }
 
-    .heatmap-cell .label {
-      font-size: 0.7rem;
-      opacity: 0.7;
+    .treemap-block .subs {
+      font-size: clamp(8px, 1.2vw, 12px);
+      color: rgba(255,255,255,0.8);
+      margin-top: 3px;
     }
 
-    /* Color variations - Stocktwits style */
-    .heat-1 { background: #1a3a2a; color: #3fb950; }
-    .heat-2 { background: #1e4a30; color: #56d364; }
-    .heat-3 { background: #2a5a3a; color: #7ee787; }
-    .heat-4 { background: #4a3a1a; color: #d29922; }
-    .heat-5 { background: #5a3a2a; color: #db6d28; }
-    .heat-6 { background: #6a2a2a; color: #f85149; }
-    .heat-7 { background: #7a1a1a; color: #ff7b72; }
-    .heat-8 { background: #8a0a0a; color: #ffa198; }
+    /* Category headers in treemap */
+    .category-header {
+      position: absolute;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: rgba(255,255,255,0.9);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      z-index: 5;
+      pointer-events: none;
+      text-shadow: 0 1px 4px rgba(0,0,0,0.9);
+    }
 
-    /* Legend */
+    /* Footer */
+    footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 20px;
+      background: #1a1a1a;
+      border-top: 1px solid #333;
+      font-size: 0.8rem;
+      color: #888;
+    }
+
     .legend {
       display: flex;
       align-items: center;
-      justify-content: center;
-      gap: 8px;
-      margin: 20px 0;
-      flex-wrap: wrap;
+      gap: 15px;
     }
 
-    .legend-item {
+    .legend-title {
+      color: #666;
+    }
+
+    .legend-bar {
       display: flex;
-      align-items: center;
-      gap: 5px;
-      font-size: 0.8rem;
-      color: #8b949e;
+      height: 12px;
+      border-radius: 2px;
+      overflow: hidden;
     }
 
-    .legend-box {
-      width: 16px;
-      height: 16px;
-      border-radius: 3px;
+    .legend-bar span {
+      width: 25px;
+      height: 100%;
     }
 
-    /* Stats */
-    .stats-bar {
-      display: flex;
-      justify-content: center;
-      gap: 30px;
-      padding: 15px;
-      background: #161b22;
-      border-top: 1px solid #21262d;
-      border-bottom: 1px solid #21262d;
-      flex-wrap: wrap;
-    }
-
-    .stat {
-      text-align: center;
-    }
-
-    .stat-num {
-      font-size: 1.5rem;
-      font-weight: 700;
-      color: #58a6ff;
-    }
-
-    .stat-label {
-      font-size: 0.75rem;
-      color: #8b949e;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-
-    /* Message */
-    .message-section {
-      max-width: 900px;
-      margin: 30px auto;
-      padding: 0 15px;
-    }
-
-    .message-box {
-      background: linear-gradient(135deg, #1a1a2e 0%, #0d1117 100%);
-      border: 1px solid #30363d;
-      border-radius: 12px;
-      padding: 30px;
-      text-align: center;
-    }
-
-    .message-box h2 {
-      color: #f0f6fc;
-      font-size: 1.4rem;
-      margin-bottom: 15px;
-    }
-
-    .message-box p {
-      color: #8b949e;
-      line-height: 1.7;
-      font-size: 0.95rem;
-    }
-
-    .message-box .highlight {
-      color: #ff6b6b;
-      font-weight: 600;
+    .instructions {
+      color: #666;
     }
 
     /* Modal */
@@ -200,227 +159,278 @@
       padding: 20px;
     }
 
-    .modal.active {
-      display: flex;
-    }
+    .modal.active { display: flex; }
 
     .modal-content {
-      background: #161b22;
-      border: 1px solid #30363d;
-      border-radius: 16px;
-      padding: 30px;
-      max-width: 500px;
+      background: #1a1a1a;
+      border: 1px solid #444;
+      border-radius: 8px;
+      padding: 25px;
+      max-width: 450px;
       width: 100%;
       max-height: 80vh;
       overflow-y: auto;
-      animation: modalIn 0.2s ease-out;
-    }
-
-    @keyframes modalIn {
-      from { transform: scale(0.95); opacity: 0; }
-      to { transform: scale(1); opacity: 1; }
     }
 
     .modal h3 {
-      color: #f0f6fc;
-      font-size: 1.5rem;
-      margin-bottom: 8px;
+      font-size: 1.4rem;
+      margin-bottom: 5px;
     }
 
-    .modal .modal-subtitle {
-      color: #8b949e;
-      margin-bottom: 20px;
-      font-size: 0.9rem;
+    .modal .impact-badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      margin-bottom: 15px;
     }
 
     .modal-close {
       float: right;
       background: none;
       border: none;
-      color: #8b949e;
+      color: #888;
       font-size: 1.5rem;
       cursor: pointer;
     }
 
-    .modal-close:hover {
-      color: #fff;
-    }
+    .modal-close:hover { color: #fff; }
 
     .sub-list {
       display: flex;
       flex-wrap: wrap;
-      gap: 8px;
+      gap: 6px;
+      margin-top: 15px;
     }
 
     .sub-item {
-      background: #21262d;
-      padding: 8px 14px;
-      border-radius: 20px;
-      font-size: 0.85rem;
-      color: #c9d1d9;
-      border: 1px solid #30363d;
+      background: #2a2a2a;
+      padding: 6px 12px;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      color: #ccc;
     }
 
-    /* Category legend */
-    .category-legend {
-      display: flex;
-      justify-content: center;
-      gap: 15px;
-      margin-top: 15px;
-      flex-wrap: wrap;
-    }
-
-    .cat-tag {
-      font-size: 0.7rem;
-      padding: 4px 10px;
-      border-radius: 12px;
-      background: #21262d;
-      color: #8b949e;
-    }
+    /* Impact color scale - red for high division */
+    .impact-1 { background: #0d3d0d; color: #4caf50; }
+    .impact-2 { background: #1a5c1a; color: #66bb6a; }
+    .impact-3 { background: #2d7a2d; color: #81c784; }
+    .impact-4 { background: #5c3d0d; color: #ffa726; }
+    .impact-5 { background: #8b5a0d; color: #ff9800; }
+    .impact-6 { background: #8b3a0d; color: #ff5722; }
+    .impact-7 { background: #9c1a1a; color: #f44336; }
+    .impact-8 { background: #b71c1c; color: #ff1744; }
   </style>
 </head>
 <body>
   <header>
-    <h1><span>HUMAN BRIDGES</span></h1>
-    <p class="subtitle">How divided are we? The bigger the block, the more we separate</p>
+    <div class="logo"><span>HUMAN</span> BRIDGES</div>
+    <nav class="nav">
+      <a href="#" class="active">Map</a>
+      <a href="#">Groups</a>
+      <a href="#">About</a>
+    </nav>
   </header>
 
-  <div class="stats-bar">
-    <div class="stat">
-      <div class="stat-num" id="total-factors">0</div>
-      <div class="stat-label">Division Factors</div>
-    </div>
-    <div class="stat">
-      <div class="stat-num" id="total-subs">0</div>
-      <div class="stat-label">Sub-Groups</div>
-    </div>
-    <div class="stat">
-      <div class="stat-num" id="total-combos">0</div>
-      <div class="stat-label">Possible Combinations</div>
-    </div>
-  </div>
+  <div id="treemap"></div>
 
-  <div class="heatmap-container">
+  <footer>
     <div class="legend">
-      <span class="legend-item"><span class="legend-box heat-1"></span> Low Division</span>
-      <span class="legend-item"><span class="legend-box heat-4"></span> Medium</span>
-      <span class="legend-item"><span class="legend-box heat-8"></span> High Division</span>
+      <span class="legend-title">DIVISION INTENSITY:</span>
+      <div class="legend-bar">
+        <span style="background:#0d3d0d"></span>
+        <span style="background:#2d7a2d"></span>
+        <span style="background:#5c3d0d"></span>
+        <span style="background:#8b3a0d"></span>
+        <span style="background:#b71c1c"></span>
+      </div>
+      <span style="color:#888">Low → High</span>
     </div>
-
-    <div class="heatmap-grid" id="heatmap"></div>
-
-    <div class="category-legend">
-      <span class="cat-tag">Identity</span>
-      <span class="cat-tag">Geography</span>
-      <span class="cat-tag">Beliefs</span>
-      <span class="cat-tag">Economics</span>
-      <span class="cat-tag">Culture</span>
-      <span class="cat-tag">Lifestyle</span>
-    </div>
-  </div>
-
-  <div class="message-section">
-    <div class="message-box">
-      <h2>🌍 We Are More Similar Than Different</h2>
-      <p>
-        Every human shares <span class="highlight">99.9% of the same DNA</span>. 
-        Yet we divide ourselves by <span class="highlight">hundreds of factors</span>. 
-        Each block above shows how we separate — the bigger and hotter the block, 
-        the more we focus on that difference.
-      </p>
-      <p style="margin-top: 15px;">
-        But look at what we all share: the desire to <span class="highlight">love</span>, 
-        to <span class="highlight">belong</span>, to be <span class="highlight">safe</span>. 
-        Beneath all labels, we are one human family.
-      </p>
-    </div>
-  </div>
+    <div class="instructions">Click any block to see sub-groups</div>
+  </footer>
 
   <!-- Modal -->
   <div class="modal" id="modal">
     <div class="modal-content">
       <button class="modal-close" onclick="closeModal()">&times;</button>
       <h3 id="modal-title">Factor</h3>
-      <p class="modal-subtitle" id="modal-desc">sub-groups</p>
+      <span class="impact-badge" id="modal-impact">Impact: 8</span>
+      <p style="color:#888;font-size:0.9rem;" id="modal-desc">sub-groups</p>
       <div class="sub-list" id="modal-subs"></div>
     </div>
   </div>
 
   <script>
-    // Division factors with impact level (1-8) and sub-groups
-    const factors = [
-      // High impact divisions (larger, hotter)
-      { name: "Religion", impact: 8, subs: ["Christianity", "Islam", "Hinduism", "Buddhism", "Judaism", "Atheism", "Agnosticism", "Sikhism", "Other"] },
-      { name: "Political Party", impact: 8, subs: ["Democrat", "Republican", "Libertarian", "Green", "Independent", "Other"] },
-      { name: "Race/Ethnicity", impact: 8, subs: ["Asian", "Black", "White", "Latino", "Indigenous", "Middle Eastern", "Mixed", "Other"] },
-      { name: "Nationality", impact: 7, subs: ["American", "British", "Chinese", "Indian", "Russian", "Brazilian", "German", "French", "Japanese", "Nigerian", "Mexican", "200+ more"] },
-      { name: "Income Level", impact: 7, subs: ["Below Poverty", "Low Income", "Middle Class", "Upper Middle", "Affluent", "Wealthy"] },
-      { name: "Sexual Orientation", impact: 7, subs: ["Straight", "Gay", "Lesbian", "Bisexual", "Pansexual", "Asexual", "Questioning"] },
-      { name: "Gender Identity", impact: 7, subs: ["Male", "Female", "Non-binary", "Transgender", "Gender Fluid", "Other"] },
-      { name: "Political Ideology", impact: 7, subs: ["Liberal", "Conservative", "Progressive", "Centrist", "Libertarian", "Socialist", "Traditionalist"] },
-      
-      // Medium-high impact
-      { name: "Language", impact: 6, subs: ["English", "Mandarin", "Spanish", "Hindi", "Arabic", "French", "Portuguese", "Russian", "Japanese", "German", "200+ more"] },
-      { name: "Social Class", impact: 6, subs: ["Working Class", "Middle Class", "Upper Middle", "Upper Class", "Elite"] },
-      { name: "Education Level", impact: 6, subs: ["No HS", "HS Grad", "Some College", "Bachelor's", "Master's", "Doctorate"] },
-      { name: "Age Generation", impact: 6, subs: ["Gen Z", "Millennial", "Gen X", "Boomer", "Silent Gen", "Gen Alpha"] },
-      { name: "Occupation", impact: 5, subs: ["Healthcare", "Tech", "Finance", "Education", "Service", "Manufacturing", "Agriculture", "Arts", "Military", "Other"] },
-      { name: "Culture", impact: 5, subs: ["Western", "Eastern", "Latin", "African", "Middle Eastern", "South Asian", "Indigenous"] },
-      { name: "Immigration Status", impact: 5, subs: ["Citizen", "Permanent Resident", "Visa Holder", "Undocumented", "Asylum Seeker", "Refugee"] },
-      { name: "Region", impact: 5, subs: ["Urban", "Suburban", "Rural", "Coastal", "Mountain", "Midwest", "Northeast", "Southeast"] },
-      
-      // Medium impact
-      { name: "Sports Team", impact: 4, subs: ["Yankees", "Celtics", "Lakers", "Cowboys", "Manchester U", "Real Madrid", "Barca", "Patriots", "100s more"] },
-      { name: "Music Taste", impact: 4, subs: ["Pop", "Rock", "Hip Hop", "Country", "Jazz", "Classical", "EDM", "R&B", "Metal", "Indie"] },
-      { name: "Food Culture", impact: 4, subs: ["American", "Chinese", "Italian", "Indian", "Mexican", "Japanese", "Thai", "French", "Mediterranean", "Vegan"] },
-      { name: "Marital Status", impact: 4, subs: ["Single", "Married", "Divorced", "Widowed", "Separated", "In Relationship"] },
-      { name: "Family Structure", impact: 4, subs: ["Nuclear Family", "Single Parent", "Blended", "Extended", "Childfree", "Empty Nest"] },
-      { name: "Disability Status", impact: 4, subs: ["Physical", "Invisible", "Chronic", "Neurodivergent", "Sensory", "None"] },
-      { name: "Ideology", impact: 4, subs: ["Liberal", "Conservative", "Progressive", "Moderate", "Traditional", "Revolutionary"] },
-      { name: "Worldview", impact: 3, subs: ["Optimist", "Pessimist", "Realist", "Idealist", "Nihilist", "Spiritual"] },
-      
-      // Lower impact but still matters
-      { name: "Hair Color", impact: 2, subs: ["Blonde", "Brunette", "Red", "Black", "Gray", "Bald", "Dyed"] },
-      { name: "Eye Color", impact: 2, subs: ["Brown", "Blue", "Green", "Hazel", "Gray", "Black"] },
-      { name: "Handedness", impact: 1, subs: ["Right-handed", "Left-handed", "Ambidextrous"] },
-      { name: "Birth Order", impact: 2, subs: ["Oldest", "Middle", "Youngest", "Only Child", "Twin"] },
-      { name: "Pet Owner", impact: 1, subs: ["Dog", "Cat", "Bird", "Fish", "Reptile", "None", "Multiple"] },
-      { name: "Coffee Preference", impact: 1, subs: ["Black", "With Milk", "With Sugar", "Espresso", "Latte", "Cold Brew", "No Coffee"] },
-      { name: "Morning/Night", impact: 2, subs: ["Early Bird", "Night Owl", "Neither"] },
-      { name: "Reading Habit", impact: 1, subs: ["Fiction", "Non-Fiction", "Both", "Audiobooks", "Not a Reader"] }
-    ];
+    // Division factors with impact (1-8) and sub-groups
+    // Grouped by category
+    const data = {
+      "IDENTITY": [
+        { name: "Race/Ethnicity", impact: 8, subs: ["Asian", "Black", "White", "Latino", "Indigenous", "Middle Eastern", "Mixed"] },
+        { name: "Gender Identity", impact: 8, subs: ["Male", "Female", "Non-binary", "Transgender", "Gender Fluid"] },
+        { name: "Sexual Orientation", impact: 8, subs: ["Straight", "Gay", "Lesbian", "Bisexual", "Pansexual", "Asexual"] },
+        { name: "Age Generation", impact: 6, subs: ["Gen Z", "Millennial", "Gen X", "Boomer", "Silent Gen", "Gen Alpha"] },
+        { name: "Physical Appearance", impact: 3, subs: ["Height", "Weight", "Hair Color", "Eye Color", "Style"] }
+      ],
+      "BELIEFS": [
+        { name: "Religion", impact: 8, subs: ["Christian", "Muslim", "Hindu", "Jewish", "Buddhist", "Atheist", "Agnostic", "Other"] },
+        { name: "Political Party", impact: 8, subs: ["Democrat", "Republican", "Libertarian", "Green", "Independent"] },
+        { name: "Political Ideology", impact: 7, subs: ["Liberal", "Conservative", "Progressive", "Centrist", "Libertarian", "Socialist"] },
+        { name: "Worldview", impact: 4, subs: ["Optimist", "Pessimist", "Realist", "Idealist", "Nihilist"] }
+      ],
+      "GEOGRAPHY": [
+        { name: "Nationality", impact: 7, subs: ["American", "British", "Chinese", "Indian", "Russian", "Brazilian", "German", "200+ more"] },
+        { name: "Region", impact: 5, subs: ["Urban", "Suburban", "Rural", "Coastal", "Mountain", "Midwest", "Northeast"] },
+        { name: "Language", impact: 6, subs: ["English", "Mandarin", "Spanish", "Hindi", "Arabic", "French", "Portuguese", "100+ more"] },
+        { name: "Immigration", impact: 6, subs: ["Citizen", "PR", "Visa", "Undocumented", "Asylum", "Refugee"] }
+      ],
+      "ECONOMICS": [
+        { name: "Income Level", impact: 7, subs: ["Below Poverty", "Low Income", "Middle Class", "Upper Middle", "Affluent", "Wealthy"] },
+        { name: "Social Class", impact: 7, subs: ["Working", "Middle", "Upper Middle", "Upper", "Elite"] },
+        { name: "Education", impact: 6, subs: ["No HS", "HS Grad", "Some College", "Bachelor's", "Master's", "PhD"] },
+        { name: "Occupation", impact: 5, subs: ["Healthcare", "Tech", "Finance", "Education", "Service", "Manufacturing", "Agriculture"] },
+        { name: "Employment", impact: 4, subs: ["Employed", "Unemployed", "Self-Employed", "Retired", "Student"] }
+      ],
+      "CULTURE": [
+        { name: "Culture", impact: 6, subs: ["Western", "Eastern", "Latin", "African", "Middle Eastern", "South Asian"] },
+        { name: "Food Culture", impact: 3, subs: ["American", "Chinese", "Italian", "Indian", "Mexican", "Japanese", "Thai", "Vegan"] },
+        { name: "Music Taste", impact: 2, subs: ["Pop", "Rock", "Hip Hop", "Country", "Jazz", "Classical", "EDM", "Metal"] },
+        { name: "Sports Team", impact: 2, subs: ["Yankees", "Celtics", "Lakers", "Cowboys", "Man Utd", "Real Madrid", "100s more"] },
+        { name: "Entertainment", impact: 2, subs: ["Movies", "TV", "Gaming", "Reading", "Sports", "Travel"] }
+      ],
+      "LIFESTYLE": [
+        { name: "Marital Status", impact: 4, subs: ["Single", "Married", "Divorced", "Widowed", "In Relationship"] },
+        { name: "Family Structure", impact: 4, subs: ["Nuclear", "Single Parent", "Blended", "Extended", "Childfree"] },
+        { name: "Disability", impact: 4, subs: ["Physical", "Invisible", "Chronic", "Neurodivergent", "Sensory"] },
+        { name: "Health/Fitness", impact: 2, subs: ["Athletic", "Active", "Average", "Sedentary"] },
+        { name: "Tech Comfort", impact: 2, subs: ["Digital Native", "Early Adopter", "Average", "Late Adopter", "Technophobe"] }
+      ]
+    };
 
-    // Calculate totals
-    let totalSubs = factors.reduce((sum, f) => sum + f.subs.length, 0);
-    let combos = factors.reduce((prod, f) => prod * f.subs.length, 1);
-
-    document.getElementById('total-factors').textContent = factors.length;
-    document.getElementById('total-subs').textContent = totalSubs;
-    document.getElementById('total-combos').textContent = combos > 999999999 ? (combos / 1000000000).toFixed(1) + 'B' : combos.toLocaleString();
-
-    // Render heatmap
-    const grid = document.getElementById('heatmap');
-    
-    // Sort by impact for visual hierarchy
-    const sortedFactors = [...factors].sort((a, b) => b.impact - a.impact);
-    
-    sortedFactors.forEach(factor => {
-      const cell = document.createElement('div');
-      cell.className = `heatmap-cell heat-${factor.impact}`;
-      cell.innerHTML = `
-        <div class="name">${factor.name}</div>
-        <div class="value">${factor.impact}</div>
-        <div class="label">impact</div>
-      `;
-      cell.onclick = () => showModal(factor);
-      grid.appendChild(cell);
+    // Flatten for processing
+    let allFactors = [];
+    Object.entries(data).forEach(([category, factors]) => {
+      factors.forEach(f => {
+        allFactors.push({ ...f, category });
+      });
     });
 
-    // Modal
-    function showModal(factor) {
-      document.getElementById('modal-title').textContent = factor.name;
-      document.getElementById('modal-desc').textContent = `${factor.subs.length} sub-groups that divide us`;
-      document.getElementById('modal-subs').innerHTML = factor.subs.map(s => 
+    // Calculate impact-based sizes
+    const totalImpact = allFactors.reduce((sum, f) => sum + f.impact, 0);
+
+    // Treemap layout using simple squarified algorithm
+    function layoutTreemap(factors, x, y, w, h) {
+      if (factors.length === 0) return [];
+      
+      // Sort by impact descending
+      const sorted = [...factors].sort((a, b) => b.impact - a.impact);
+      
+      const blocks = [];
+      let remaining = [...sorted];
+      
+      function splitRow(row, x, y, w, h, horizontal) {
+        const rowImpact = row.reduce((sum, f) => sum + f.impact, 0);
+        const total = horizontal ? w : h;
+        const rowSize = (rowImpact / totalImpact) * (horizontal ? w : h);
+        
+        let offset = 0;
+        row.forEach((f, i) => {
+          const ratio = f.impact / rowImpact;
+          const size = ratio * (horizontal ? h : w);
+          
+          blocks.push({
+            ...f,
+            x: horizontal ? x : x + offset,
+            y: horizontal ? y + offset : y,
+            width: horizontal ? rowSize : size,
+            height: horizontal ? size : rowSize
+          });
+          
+          offset += size;
+        });
+      }
+
+      // Simple alternating horizontal/vertical split
+      let currentX = x, currentY = y, currentW = w, currentH = h;
+      let horizontal = w >= h;
+      
+      while (remaining.length > 0) {
+        // Find best row
+        let row = [remaining[0]];
+        let i = 1;
+        
+        while (i < remaining.length) {
+          const testRow = [...row, remaining[i]];
+          const rowImpact = testRow.reduce((sum, f) => sum + f.impact, 0);
+          const currentRowImpact = row.reduce((sum, f) => sum + f.impact, 0);
+          
+          // Aspect ratio check - simplified
+          if (row.length < 4 && currentRowImpact + remaining[i].impact <= totalImpact * 0.4) {
+            row.push(remaining[i]);
+            i++;
+          } else {
+            break;
+          }
+        }
+        
+        remaining = remaining.slice(row.length);
+        splitRow(row, currentX, currentY, currentW, currentH, horizontal);
+        
+        // Update position for next row
+        const rowImpact = row.reduce((sum, f) => sum + f.impact, 0);
+        const rowRatio = rowImpact / totalImpact;
+        
+        if (horizontal) {
+          currentX += rowRatio * w;
+          currentW -= rowRatio * w;
+        } else {
+          currentY += rowRatio * h;
+          currentH -= rowRatio * h;
+        }
+        horizontal = !horizontal;
+      }
+      
+      return blocks;
+    }
+
+    // Render treemap
+    function render() {
+      const container = document.getElementById('treemap');
+      const rect = container.getBoundingClientRect();
+      const w = rect.width;
+      const h = rect.height;
+      
+      container.innerHTML = '';
+      
+      const blocks = layoutTreemap(allFactors, 0, 0, w, h);
+      
+      // Add category labels (simple - just show major categories)
+      const categories = Object.keys(data);
+      let catOffset = 0;
+      
+      blocks.forEach(block => {
+        const el = document.createElement('div');
+        el.className = `treemap-block impact-${block.impact}`;
+        el.style.left = block.x + 'px';
+        el.style.top = block.y + 'px';
+        el.style.width = block.width + 'px';
+        el.style.height = block.height + 'px';
+        el.innerHTML = `
+          <div class="name">${block.name}</div>
+          <div class="subs">${block.subs.length} groups</div>
+        `;
+        el.onclick = () => showModal(block);
+        container.appendChild(el);
+      });
+    }
+
+    // Show modal
+    function showModal(block) {
+      document.getElementById('modal-title').textContent = block.name;
+      document.getElementById('modal-impact').textContent = 'Impact: ' + block.impact;
+      document.getElementById('modal-impact').className = 'impact-badge impact-' + block.impact;
+      document.getElementById('modal-desc').textContent = `${block.subs.length} ways we divide within "${block.name}"`;
+      document.getElementById('modal-subs').innerHTML = block.subs.map(s => 
         `<span class="sub-item">${s}</span>`
       ).join('');
       document.getElementById('modal').classList.add('active');
@@ -437,6 +447,10 @@
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') closeModal();
     });
+
+    // Initial render and resize
+    render();
+    window.addEventListener('resize', render);
   </script>
 </body>
 </html>
