@@ -8,105 +8,131 @@
     * { margin: 0; padding: 0; box-sizing: border-box; }
     
     body {
-      font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
-      background: #0a0a12;
-      color: #fff;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #0d1117;
+      color: #e6edf3;
       min-height: 100vh;
-      overflow-x: hidden;
-    }
-
-    /* Animated background */
-    .bg {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      z-index: 0;
-      background: 
-        radial-gradient(ellipse at 20% 20%, rgba(120, 80, 180, 0.15) 0%, transparent 50%),
-        radial-gradient(ellipse at 80% 80%, rgba(60, 100, 160, 0.15) 0%, transparent 50%),
-        radial-gradient(ellipse at 50% 50%, rgba(80, 60, 120, 0.1) 0%, transparent 70%),
-        linear-gradient(180deg, #0a0a12 0%, #0d0d18 100%);
     }
 
     header {
-      position: relative;
-      z-index: 10;
       text-align: center;
-      padding: 30px 20px 20px;
+      padding: 25px 20px 15px;
+      background: linear-gradient(180deg, #161b22 0%, #0d1117 100%);
+      border-bottom: 1px solid #21262d;
     }
 
     h1 {
-      font-size: clamp(2rem, 6vw, 3.5rem);
-      font-weight: 300;
-      letter-spacing: 0.1em;
-      background: linear-gradient(135deg, #ff6b9d, #c44dff, #6bffff);
+      font-size: clamp(1.8rem, 4vw, 2.5rem);
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      margin-bottom: 8px;
+    }
+
+    h1 span {
+      background: linear-gradient(135deg, #ff6b6b, #feca57, #48dbfb, #ff9ff3);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
-      margin-bottom: 10px;
-      animation: glow 3s ease-in-out infinite;
-    }
-
-    @keyframes glow {
-      0%, 100% { filter: brightness(1); }
-      50% { filter: brightness(1.2); }
     }
 
     .subtitle {
-      color: #8888aa;
-      font-size: clamp(1rem, 2.5vw, 1.3rem);
-      max-width: 700px;
+      color: #8b949e;
+      font-size: 1rem;
+      max-width: 600px;
       margin: 0 auto;
-      line-height: 1.6;
     }
 
-    .intro-box {
-      position: relative;
-      z-index: 10;
-      background: rgba(255,255,255,0.03);
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 20px;
-      padding: 30px;
+    /* Heatmap grid */
+    .heatmap-container {
+      max-width: 1400px;
       margin: 20px auto;
-      max-width: 800px;
-      text-align: center;
+      padding: 0 15px;
     }
 
-    .intro-box p {
-      color: #aaaacc;
-      line-height: 1.8;
-      font-size: 1.1rem;
+    .heatmap-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 6px;
     }
 
-    .intro-box strong {
-      color: #ff6b9d;
-    }
-
-    /* Canvas container */
-    #bubble-canvas {
+    .heatmap-cell {
       position: relative;
-      z-index: 5;
-      width: 100%;
-      height: 60vh;
-      min-height: 400px;
-      cursor: grab;
+      border-radius: 8px;
+      padding: 15px 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      min-height: 80px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
     }
 
-    #bubble-canvas:active {
-      cursor: grabbing;
+    .heatmap-cell:hover {
+      transform: scale(1.03);
+      z-index: 10;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+    }
+
+    .heatmap-cell .name {
+      font-weight: 600;
+      font-size: 0.85rem;
+      margin-bottom: 5px;
+      color: inherit;
+    }
+
+    .heatmap-cell .value {
+      font-size: 1.4rem;
+      font-weight: 700;
+    }
+
+    .heatmap-cell .label {
+      font-size: 0.7rem;
+      opacity: 0.7;
+    }
+
+    /* Color variations - Stocktwits style */
+    .heat-1 { background: #1a3a2a; color: #3fb950; }
+    .heat-2 { background: #1e4a30; color: #56d364; }
+    .heat-3 { background: #2a5a3a; color: #7ee787; }
+    .heat-4 { background: #4a3a1a; color: #d29922; }
+    .heat-5 { background: #5a3a2a; color: #db6d28; }
+    .heat-6 { background: #6a2a2a; color: #f85149; }
+    .heat-7 { background: #7a1a1a; color: #ff7b72; }
+    .heat-8 { background: #8a0a0a; color: #ffa198; }
+
+    /* Legend */
+    .legend {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin: 20px 0;
+      flex-wrap: wrap;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.8rem;
+      color: #8b949e;
+    }
+
+    .legend-box {
+      width: 16px;
+      height: 16px;
+      border-radius: 3px;
     }
 
     /* Stats */
-    .stats {
-      position: relative;
-      z-index: 10;
+    .stats-bar {
       display: flex;
       justify-content: center;
-      gap: 40px;
-      padding: 20px;
+      gap: 30px;
+      padding: 15px;
+      background: #161b22;
+      border-top: 1px solid #21262d;
+      border-bottom: 1px solid #21262d;
       flex-wrap: wrap;
     }
 
@@ -115,22 +141,51 @@
     }
 
     .stat-num {
-      font-size: 2.5rem;
-      font-weight: bold;
-      background: linear-gradient(135deg, #ff6b9d, #c44dff);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #58a6ff;
     }
 
     .stat-label {
-      color: #6688aa;
-      font-size: 0.9rem;
+      font-size: 0.75rem;
+      color: #8b949e;
       text-transform: uppercase;
-      letter-spacing: 0.1em;
+      letter-spacing: 0.05em;
     }
 
-    /* Modal for factor details */
+    /* Message */
+    .message-section {
+      max-width: 900px;
+      margin: 30px auto;
+      padding: 0 15px;
+    }
+
+    .message-box {
+      background: linear-gradient(135deg, #1a1a2e 0%, #0d1117 100%);
+      border: 1px solid #30363d;
+      border-radius: 12px;
+      padding: 30px;
+      text-align: center;
+    }
+
+    .message-box h2 {
+      color: #f0f6fc;
+      font-size: 1.4rem;
+      margin-bottom: 15px;
+    }
+
+    .message-box p {
+      color: #8b949e;
+      line-height: 1.7;
+      font-size: 0.95rem;
+    }
+
+    .message-box .highlight {
+      color: #ff6b6b;
+      font-weight: 600;
+    }
+
+    /* Modal */
     .modal {
       display: none;
       position: fixed;
@@ -140,7 +195,6 @@
       height: 100%;
       z-index: 100;
       background: rgba(0,0,0,0.85);
-      backdrop-filter: blur(20px);
       justify-content: center;
       align-items: center;
       padding: 20px;
@@ -151,387 +205,224 @@
     }
 
     .modal-content {
-      background: linear-gradient(145deg, #1a1a2e, #12121f);
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 24px;
-      padding: 40px;
-      max-width: 600px;
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 16px;
+      padding: 30px;
+      max-width: 500px;
       width: 100%;
       max-height: 80vh;
       overflow-y: auto;
-      animation: modalIn 0.3s ease-out;
+      animation: modalIn 0.2s ease-out;
     }
 
     @keyframes modalIn {
-      from { transform: scale(0.9); opacity: 0; }
+      from { transform: scale(0.95); opacity: 0; }
       to { transform: scale(1); opacity: 1; }
     }
 
-    .modal h2 {
-      font-size: 2rem;
-      margin-bottom: 10px;
-      background: linear-gradient(135deg, #ff6b9d, #c44dff);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
+    .modal h3 {
+      color: #f0f6fc;
+      font-size: 1.5rem;
+      margin-bottom: 8px;
     }
 
-    .modal .subtitle {
-      color: #8888aa;
-      margin-bottom: 25px;
-      font-size: 1rem;
+    .modal .modal-subtitle {
+      color: #8b949e;
+      margin-bottom: 20px;
+      font-size: 0.9rem;
     }
 
     .modal-close {
-      position: absolute;
-      top: 20px;
-      right: 20px;
+      float: right;
       background: none;
       border: none;
-      color: #888;
-      font-size: 2rem;
+      color: #8b949e;
+      font-size: 1.5rem;
       cursor: pointer;
-      transition: color 0.2s;
     }
 
     .modal-close:hover {
       color: #fff;
     }
 
-    .sub-groups {
+    .sub-list {
       display: flex;
       flex-wrap: wrap;
-      gap: 10px;
-      margin-top: 20px;
+      gap: 8px;
     }
 
-    .sub-group {
-      background: rgba(255,107,157,0.15);
-      border: 1px solid rgba(255,107,157,0.3);
-      padding: 10px 18px;
-      border-radius: 30px;
-      font-size: 0.95rem;
-      transition: all 0.2s;
-    }
-
-    .sub-group:hover {
-      background: rgba(255,107,157,0.25);
-      transform: scale(1.05);
-    }
-
-    /* Message section */
-    .message-section {
-      position: relative;
-      z-index: 10;
-      text-align: center;
-      padding: 40px 20px;
-      margin: 20px auto;
-      max-width: 900px;
-    }
-
-    .message-box {
-      background: linear-gradient(135deg, rgba(255,107,157,0.1), rgba(196,77,255,0.1));
-      border: 1px solid rgba(255,107,157,0.2);
-      border-radius: 24px;
-      padding: 50px 30px;
-    }
-
-    .message-box h2 {
-      font-size: clamp(1.5rem, 4vw, 2.2rem);
-      margin-bottom: 20px;
-      background: linear-gradient(135deg, #ff6b9d, #feca57, #6bffff);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-
-    .message-box p {
-      color: #ccccee;
-      font-size: clamp(1rem, 2vw, 1.2rem);
-      line-height: 1.8;
-      max-width: 700px;
-      margin: 0 auto;
-    }
-
-    .message-box .highlight {
-      color: #fff;
-      font-weight: 600;
-    }
-
-    /* Instructions */
-    .instructions {
-      position: fixed;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 10;
-      background: rgba(255,255,255,0.05);
-      padding: 12px 24px;
-      border-radius: 30px;
-      font-size: 0.9rem;
-      color: #6688aa;
-      border: 1px solid rgba(255,255,255,0.1);
-    }
-
-    /* Scroll indicator */
-    .scroll-hint {
-      position: fixed;
-      bottom: 60px;
-      left: 50%;
-      transform: translateX(-50%);
-      color: #446688;
+    .sub-item {
+      background: #21262d;
+      padding: 8px 14px;
+      border-radius: 20px;
       font-size: 0.85rem;
-      animation: bounce 2s infinite;
+      color: #c9d1d9;
+      border: 1px solid #30363d;
     }
 
-    @keyframes bounce {
-      0%, 100% { transform: translateX(-50%) translateY(0); }
-      50% { transform: translateX(-50%) translateY(10px); }
+    /* Category legend */
+    .category-legend {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      margin-top: 15px;
+      flex-wrap: wrap;
+    }
+
+    .cat-tag {
+      font-size: 0.7rem;
+      padding: 4px 10px;
+      border-radius: 12px;
+      background: #21262d;
+      color: #8b949e;
     }
   </style>
 </head>
 <body>
-  <div class="bg"></div>
-
   <header>
-    <h1>HUMAN BRIDGES</h1>
-    <p class="subtitle">Everything that divides us — visualized</p>
+    <h1><span>HUMAN BRIDGES</span></h1>
+    <p class="subtitle">How divided are we? The bigger the block, the more we separate</p>
   </header>
 
-  <div class="stats">
+  <div class="stats-bar">
     <div class="stat">
-      <div class="stat-num" id="factor-count">0</div>
+      <div class="stat-num" id="total-factors">0</div>
       <div class="stat-label">Division Factors</div>
     </div>
     <div class="stat">
-      <div class="stat-num" id="subgroup-count">0</div>
+      <div class="stat-num" id="total-subs">0</div>
       <div class="stat-label">Sub-Groups</div>
     </div>
     <div class="stat">
-      <div class="stat-num" id="combo-count">0</div>
+      <div class="stat-num" id="total-combos">0</div>
       <div class="stat-label">Possible Combinations</div>
     </div>
   </div>
 
-  <div class="intro-box">
-    <p>
-      Every human shares <strong>99.9% of the same DNA</strong>. Yet we find thousands of ways to divide ourselves. 
-      Each bubble below represents one way we separate — by religion, race, language, politics, income, 
-      and countless other factors.
-    </p>
-    <p style="margin-top: 15px;">
-      <strong>Click any bubble</strong> to explore how we divide within that category.
-    </p>
-  </div>
+  <div class="heatmap-container">
+    <div class="legend">
+      <span class="legend-item"><span class="legend-box heat-1"></span> Low Division</span>
+      <span class="legend-item"><span class="legend-box heat-4"></span> Medium</span>
+      <span class="legend-item"><span class="legend-box heat-8"></span> High Division</span>
+    </div>
 
-  <canvas id="bubble-canvas"></canvas>
+    <div class="heatmap-grid" id="heatmap"></div>
 
-  <div class="message-section">
-    <div class="message-box">
-      <h2>💫 We Are More Similar Than Different</h2>
-      <p>
-        Every person is a combination of hundreds of these factors. 
-        You are simultaneously <span class="highlight">religious and secular</span>, 
-        <span class="highlight">rich and poor</span>, 
-        <span class="highlight">urban and rural</span> in mindset.
-      </p>
-      <p style="margin-top: 20px;">
-        The goal isn't to eliminate our differences — it's to recognize that 
-        <span class="highlight">beneath all the labels, we are one human family</span>. 
-        We all want the same things: to love, be loved, be safe, and belong.
-      </p>
+    <div class="category-legend">
+      <span class="cat-tag">Identity</span>
+      <span class="cat-tag">Geography</span>
+      <span class="cat-tag">Beliefs</span>
+      <span class="cat-tag">Economics</span>
+      <span class="cat-tag">Culture</span>
+      <span class="cat-tag">Lifestyle</span>
     </div>
   </div>
 
-  <div class="instructions">🖱️ Click bubbles to explore &nbsp;|&nbsp; Drag to move around</div>
+  <div class="message-section">
+    <div class="message-box">
+      <h2>🌍 We Are More Similar Than Different</h2>
+      <p>
+        Every human shares <span class="highlight">99.9% of the same DNA</span>. 
+        Yet we divide ourselves by <span class="highlight">hundreds of factors</span>. 
+        Each block above shows how we separate — the bigger and hotter the block, 
+        the more we focus on that difference.
+      </p>
+      <p style="margin-top: 15px;">
+        But look at what we all share: the desire to <span class="highlight">love</span>, 
+        to <span class="highlight">belong</span>, to be <span class="highlight">safe</span>. 
+        Beneath all labels, we are one human family.
+      </p>
+    </div>
+  </div>
 
   <!-- Modal -->
   <div class="modal" id="modal">
     <div class="modal-content">
       <button class="modal-close" onclick="closeModal()">&times;</button>
-      <h2 id="modal-title">Factor</h2>
-      <p class="subtitle" id="modal-desc">How we divide within this category</p>
-      <div class="sub-groups" id="modal-groups"></div>
+      <h3 id="modal-title">Factor</h3>
+      <p class="modal-subtitle" id="modal-desc">sub-groups</p>
+      <div class="sub-list" id="modal-subs"></div>
     </div>
   </div>
 
   <script>
-    // Division factors with their sub-groups
+    // Division factors with impact level (1-8) and sub-groups
     const factors = [
-      { name: "Religion", subs: ["Christianity", "Islam", "Hinduism", "Buddhism", "Judaism", "Atheism", "Agnosticism", "Sikhism", "Shinto", "Zoroastrianism", "Baha'i", "Other"] },
-      { name: "Nationality", subs: ["American", "British", "Chinese", "Indian", "Russian", "Brazilian", "German", "French", "Japanese", "Nigerian", "Mexican", "And 190+ more"] },
-      { name: "Race", subs: ["Asian", "Black", "White", "Indigenous", "Latino", "Mixed", "Middle Eastern", "South Asian"] },
-      { name: "Language", subs: ["English", "Mandarin", "Spanish", "Hindi", "Arabic", "French", "Portuguese", "Russian", "Japanese", "German", "200+ others"] },
-      { name: "Political Party", subs: ["Democrat", "Republican", "Libertarian", "Green", "Independent", "Other", "Non-voter"] },
-      { name: "Income Level", subs: ["Below Poverty", "Low Income", "Middle Class", "Upper Middle", "Affluent", "Wealthy", "Ultra Wealthy"] },
-      { name: "Education", subs: ["No High School", "High School", "Some College", "Bachelor's", "Master's", "Doctorate", "Professional"] },
-      { name: "Occupation", subs: ["Healthcare", "Education", "Tech", "Finance", "Agriculture", "Manufacturing", "Service", "Arts", "Military", "Homemaker", "Student", "Unemployed"] },
-      { name: "Gender", subs: ["Male", "Female", "Non-binary", "Gender Fluid", "Other"] },
-      { name: "Sexual Orientation", subs: ["Straight", "Gay", "Lesbian", "Bisexual", "Pansexual", "Asexual", "Questioning"] },
-      { name: "Age Generation", subs: ["Gen Z", "Millennial", "Gen X", "Boomer", "Silent Gen", "Gen Alpha"] },
-      { name: "Region", subs: ["Urban", "Suburban", "Rural", "Coastal", "Mountain", "Desert", "Midwest", "Northeast", "Southeast", "Southwest"] },
-      { name: "Sports Team", subs: [" Yankees", "Celtics", "Lakers", "Cowboys", "Manchester United", "Real Madrid", "Barca", "Patriots", "49ers", "And hundreds more"] },
-      { name: "Music Taste", subs: ["Pop", "Rock", "Hip Hop", "Country", "Jazz", "Classical", "EDM", "R&B", "Metal", "Folk", "Indie", "K-Pop"] },
-      { name: "Food Culture", subs: ["American", "Chinese", "Italian", "Indian", "Mexican", "Japanese", "Thai", "French", "Mediterranean", "Middle Eastern", "Vegan", "Vegetarian"] },
-      { name: "Ideology", subs: ["Liberal", "Conservative", "Centrist", "Progressive", "Libertarian", "Traditionalist", "Revolutionary"] },
-      { name: "Immigration Status", subs: ["Citizen", "Permanent Resident", "Visa Holder", "Undocumented", "Asylum Seeker", "Refugee"] },
-      { name: "Family Structure", subs: ["Single", "Married", "Divorced", "Widowed", "With Children", "Empty Nest", "Extended Family", "Chosen Family"] },
-      { name: "Disability", subs: ["Physical", "Invisible", "Chronic Illness", "Neurodivergent", "Sensory", "None"] },
-      { name: "Body Type", subs: ["Athletic", "Slim", "Average", "Curvy", "Plus Size", "Muscular"] },
-      { name: "Tech Comfort", subs: ["Digital Native", "Early Adopter", "Average User", "Late Adopter", "Technophobe"] },
-      { name: "Work Style", subs: ["Remote", "Hybrid", "In-Office", "Shift Work", "Freelance", "Entrepreneur"] },
-      { name: "Relationship Style", subs: ["Monogamous", "Polyamorous", "Open", "Aromantic", "Celibate"] },
-      { name: "Parenting", subs: ["Helicopter", "Free Range", "Authoritative", "Permissive", "Attachment", "Non-Parent"] },
-      { name: "Environmental View", subs: ["Deep Green", "Moderate", "Pragmatist", "Skeptic", "Denier"] },
-      { name: "Military Service", subs: ["Veteran", "Active Duty", "Reserves", "Never Served", "Drafted", "Conscientious Objector"] },
-      { name: "Social Media", subs: ["Twitter", "Instagram", "TikTok", "Facebook", "LinkedIn", "Reddit", "None", "Private Account"] },
-      { name: "Wealth Source", subs: ["Inherited", "Self-Made", "Salary", "Investments", "Business", "Government Aid", "Retired"] },
-      { name: "Worldview", subs: ["Optimist", "Pessimist", "Realist", "Idealist", "Nihilist"] }
+      // High impact divisions (larger, hotter)
+      { name: "Religion", impact: 8, subs: ["Christianity", "Islam", "Hinduism", "Buddhism", "Judaism", "Atheism", "Agnosticism", "Sikhism", "Other"] },
+      { name: "Political Party", impact: 8, subs: ["Democrat", "Republican", "Libertarian", "Green", "Independent", "Other"] },
+      { name: "Race/Ethnicity", impact: 8, subs: ["Asian", "Black", "White", "Latino", "Indigenous", "Middle Eastern", "Mixed", "Other"] },
+      { name: "Nationality", impact: 7, subs: ["American", "British", "Chinese", "Indian", "Russian", "Brazilian", "German", "French", "Japanese", "Nigerian", "Mexican", "200+ more"] },
+      { name: "Income Level", impact: 7, subs: ["Below Poverty", "Low Income", "Middle Class", "Upper Middle", "Affluent", "Wealthy"] },
+      { name: "Sexual Orientation", impact: 7, subs: ["Straight", "Gay", "Lesbian", "Bisexual", "Pansexual", "Asexual", "Questioning"] },
+      { name: "Gender Identity", impact: 7, subs: ["Male", "Female", "Non-binary", "Transgender", "Gender Fluid", "Other"] },
+      { name: "Political Ideology", impact: 7, subs: ["Liberal", "Conservative", "Progressive", "Centrist", "Libertarian", "Socialist", "Traditionalist"] },
+      
+      // Medium-high impact
+      { name: "Language", impact: 6, subs: ["English", "Mandarin", "Spanish", "Hindi", "Arabic", "French", "Portuguese", "Russian", "Japanese", "German", "200+ more"] },
+      { name: "Social Class", impact: 6, subs: ["Working Class", "Middle Class", "Upper Middle", "Upper Class", "Elite"] },
+      { name: "Education Level", impact: 6, subs: ["No HS", "HS Grad", "Some College", "Bachelor's", "Master's", "Doctorate"] },
+      { name: "Age Generation", impact: 6, subs: ["Gen Z", "Millennial", "Gen X", "Boomer", "Silent Gen", "Gen Alpha"] },
+      { name: "Occupation", impact: 5, subs: ["Healthcare", "Tech", "Finance", "Education", "Service", "Manufacturing", "Agriculture", "Arts", "Military", "Other"] },
+      { name: "Culture", impact: 5, subs: ["Western", "Eastern", "Latin", "African", "Middle Eastern", "South Asian", "Indigenous"] },
+      { name: "Immigration Status", impact: 5, subs: ["Citizen", "Permanent Resident", "Visa Holder", "Undocumented", "Asylum Seeker", "Refugee"] },
+      { name: "Region", impact: 5, subs: ["Urban", "Suburban", "Rural", "Coastal", "Mountain", "Midwest", "Northeast", "Southeast"] },
+      
+      // Medium impact
+      { name: "Sports Team", impact: 4, subs: ["Yankees", "Celtics", "Lakers", "Cowboys", "Manchester U", "Real Madrid", "Barca", "Patriots", "100s more"] },
+      { name: "Music Taste", impact: 4, subs: ["Pop", "Rock", "Hip Hop", "Country", "Jazz", "Classical", "EDM", "R&B", "Metal", "Indie"] },
+      { name: "Food Culture", impact: 4, subs: ["American", "Chinese", "Italian", "Indian", "Mexican", "Japanese", "Thai", "French", "Mediterranean", "Vegan"] },
+      { name: "Marital Status", impact: 4, subs: ["Single", "Married", "Divorced", "Widowed", "Separated", "In Relationship"] },
+      { name: "Family Structure", impact: 4, subs: ["Nuclear Family", "Single Parent", "Blended", "Extended", "Childfree", "Empty Nest"] },
+      { name: "Disability Status", impact: 4, subs: ["Physical", "Invisible", "Chronic", "Neurodivergent", "Sensory", "None"] },
+      { name: "Ideology", impact: 4, subs: ["Liberal", "Conservative", "Progressive", "Moderate", "Traditional", "Revolutionary"] },
+      { name: "Worldview", impact: 3, subs: ["Optimist", "Pessimist", "Realist", "Idealist", "Nihilist", "Spiritual"] },
+      
+      // Lower impact but still matters
+      { name: "Hair Color", impact: 2, subs: ["Blonde", "Brunette", "Red", "Black", "Gray", "Bald", "Dyed"] },
+      { name: "Eye Color", impact: 2, subs: ["Brown", "Blue", "Green", "Hazel", "Gray", "Black"] },
+      { name: "Handedness", impact: 1, subs: ["Right-handed", "Left-handed", "Ambidextrous"] },
+      { name: "Birth Order", impact: 2, subs: ["Oldest", "Middle", "Youngest", "Only Child", "Twin"] },
+      { name: "Pet Owner", impact: 1, subs: ["Dog", "Cat", "Bird", "Fish", "Reptile", "None", "Multiple"] },
+      { name: "Coffee Preference", impact: 1, subs: ["Black", "With Milk", "With Sugar", "Espresso", "Latte", "Cold Brew", "No Coffee"] },
+      { name: "Morning/Night", impact: 2, subs: ["Early Bird", "Night Owl", "Neither"] },
+      { name: "Reading Habit", impact: 1, subs: ["Fiction", "Non-Fiction", "Both", "Audiobooks", "Not a Reader"] }
     ];
 
     // Calculate totals
     let totalSubs = factors.reduce((sum, f) => sum + f.subs.length, 0);
-    let combos = 1;
-    factors.forEach(f => combos *= f.subs.length);
+    let combos = factors.reduce((prod, f) => prod * f.subs.length, 1);
 
-    document.getElementById('factor-count').textContent = factors.length;
-    document.getElementById('subgroup-count').textContent = totalSubs;
-    document.getElementById('combo-count').textContent = combos.toLocaleString();
+    document.getElementById('total-factors').textContent = factors.length;
+    document.getElementById('total-subs').textContent = totalSubs;
+    document.getElementById('total-combos').textContent = combos > 999999999 ? (combos / 1000000000).toFixed(1) + 'B' : combos.toLocaleString();
 
-    // Canvas setup
-    const canvas = document.getElementById('bubble-canvas');
-    const ctx = canvas.getContext('2d');
-    let width, height;
-
-    function resize() {
-      width = canvas.width = canvas.offsetWidth;
-      height = canvas.height = canvas.offsetHeight;
-    }
-    resize();
-    window.addEventListener('resize', resize);
-
-    // Bubble class
-    class Bubble {
-      constructor(factor, index) {
-        this.factor = factor;
-        this.index = index;
-        this.x = Math.random() * width;
-        this.y = Math.random() * height;
-        this.baseRadius = 40 + factor.subs.length * 8;
-        this.radius = this.baseRadius;
-        this.targetRadius = this.radius;
-        this.vx = (Math.random() - 0.5) * 0.5;
-        this.vy = (Math.random() - 0.5) * 0.5;
-        this.hue = (index * 360 / factors.length + 280) % 360;
-        this.hovered = false;
-        this.selected = false;
-      }
-
-      update(mouseX, mouseY) {
-        // Floating motion
-        this.x += this.vx;
-        this.y += this.vy;
-
-        // Bounce off edges
-        if (this.x < this.radius || this.x > width - this.radius) this.vx *= -1;
-        if (this.y < this.radius || this.y > height - this.radius) this.vy *= -1;
-
-        // Keep in bounds
-        this.x = Math.max(this.radius, Math.min(width - this.radius, this.x));
-        this.y = Math.max(this.radius, Math.min(height - this.radius, this.y));
-
-        // Check hover
-        const dx = mouseX - this.x;
-        const dy = mouseY - this.y;
-        this.hovered = dx * dx + dy * dy < this.radius * this.radius;
-
-        // Animate radius
-        const target = this.hovered ? this.baseRadius * 1.3 : this.baseRadius;
-        this.radius += (target - this.radius) * 0.15;
-      }
-
-      draw() {
-        ctx.beginPath();
-        const gradient = ctx.createRadialGradient(
-          this.x - this.radius * 0.3, 
-          this.y - this.radius * 0.3, 
-          0,
-          this.x, 
-          this.y, 
-          this.radius
-        );
-        
-        const saturation = this.hovered ? '80%' : '65%';
-        const lightness = this.hovered ? '65%' : '55%';
-        
-        gradient.addColorStop(0, `hsl(${this.hue}, ${saturation}, ${lightness})`);
-        gradient.addColorStop(0.7, `hsl(${this.hue}, ${saturation}, 45%)`);
-        gradient.addColorStop(1, `hsl(${this.hue}, ${saturation}, 25%)`);
-
-        ctx.fillStyle = gradient;
-        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Glow effect
-        if (this.hovered) {
-          ctx.beginPath();
-          ctx.arc(this.x, this.y, this.radius + 10, 0, Math.PI * 2);
-          ctx.strokeStyle = `hsla(${this.hue}, 80%, 60%, 0.4)`;
-          ctx.lineWidth = 3;
-          ctx.stroke();
-        }
-
-        // Text
-        ctx.fillStyle = '#fff';
-        ctx.font = `bold ${Math.max(12, this.radius / 4)}px 'Segoe UI', sans-serif`;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(this.factor.name, this.x, this.y);
-      }
-
-      contains(px, py) {
-        const dx = px - this.x;
-        const dy = py - this.y;
-        return dx * dx + dy * dy < this.radius * this.radius;
-      }
-    }
-
-    // Create bubbles
-    let bubbles = factors.map((f, i) => new Bubble(f, i));
-
-    // Mouse tracking
-    let mouseX = 0, mouseY = 0;
-    let isDragging = false;
-
-    canvas.addEventListener('mousemove', (e) => {
-      const rect = canvas.getBoundingClientRect();
-      mouseX = e.clientX - rect.left;
-      mouseY = e.clientY - rect.top;
+    // Render heatmap
+    const grid = document.getElementById('heatmap');
+    
+    // Sort by impact for visual hierarchy
+    const sortedFactors = [...factors].sort((a, b) => b.impact - a.impact);
+    
+    sortedFactors.forEach(factor => {
+      const cell = document.createElement('div');
+      cell.className = `heatmap-cell heat-${factor.impact}`;
+      cell.innerHTML = `
+        <div class="name">${factor.name}</div>
+        <div class="value">${factor.impact}</div>
+        <div class="label">impact</div>
+      `;
+      cell.onclick = () => showModal(factor);
+      grid.appendChild(cell);
     });
 
-    canvas.addEventListener('click', (e) => {
-      const rect = canvas.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-      
-      for (let bubble of bubbles) {
-        if (bubble.contains(x, y)) {
-          showModal(bubble.factor);
-          return;
-        }
-      }
-    });
-
-    // Modal functions
+    // Modal
     function showModal(factor) {
       document.getElementById('modal-title').textContent = factor.name;
-      document.getElementById('modal-desc').textContent = `${factor.subs.length} ways we divide within "${factor.name}"`;
-      
-      const groups = document.getElementById('modal-groups');
-      groups.innerHTML = factor.subs.map(s => 
-        `<span class="sub-group">${s}</span>`
+      document.getElementById('modal-desc').textContent = `${factor.subs.length} sub-groups that divide us`;
+      document.getElementById('modal-subs').innerHTML = factor.subs.map(s => 
+        `<span class="sub-item">${s}</span>`
       ).join('');
-      
       document.getElementById('modal').classList.add('active');
     }
 
@@ -546,37 +437,6 @@
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') closeModal();
     });
-
-    // Animation loop
-    function animate() {
-      ctx.clearRect(0, 0, width, height);
-
-      // Draw connections
-      ctx.strokeStyle = 'rgba(255,255,255,0.05)';
-      ctx.lineWidth = 1;
-      for (let i = 0; i < bubbles.length; i++) {
-        for (let j = i + 1; j < bubbles.length; j++) {
-          const dx = bubbles[i].x - bubbles[j].x;
-          const dy = bubbles[i].y - bubbles[j].y;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-          if (dist < 200) {
-            ctx.beginPath();
-            ctx.moveTo(bubbles[i].x, bubbles[i].y);
-            ctx.lineTo(bubbles[j].x, bubbles[j].y);
-            ctx.stroke();
-          }
-        }
-      }
-
-      // Draw bubbles
-      bubbles.forEach(b => b.update(mouseX, mouseY));
-      bubbles.sort((a, b) => a.radius - b.radius);
-      bubbles.forEach(b => b.draw());
-
-      requestAnimationFrame(animate);
-    }
-
-    animate();
   </script>
 </body>
 </html>
