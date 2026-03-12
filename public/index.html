@@ -1,92 +1,400 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Human Bridges</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Human Bridges - What Divides Us</title>
   <style>
-    body { font-family: Inter, system-ui, sans-serif; margin:0; background:#0b1020; color:#e6ebff; }
-    .wrap { max-width:1200px; margin:0 auto; padding:18px; }
-    h1 { margin:0 0 6px; }
-    .sub { opacity:.85; margin-bottom:14px; }
-    .grid { display:grid; grid-template-columns: 320px 1fr; gap:14px; }
-    .card { background:#141c34; border:1px solid #2b3a66; border-radius:12px; padding:12px; }
-    .metrics { display:grid; grid-template-columns: repeat(2,1fr); gap:8px; }
-    .metric { background:#0f1630; border-radius:8px; padding:8px; }
-    label { display:block; font-size:12px; opacity:.9; margin:8px 0 3px; }
-    input[type=range] { width:100%; }
-    canvas { width:100%; background:#0f1630; border-radius:10px; display:block; }
-    .row { display:flex; gap:8px; flex-wrap:wrap; }
-    button { background:#2c79ff; border:0; color:white; padding:8px 10px; border-radius:8px; cursor:pointer; }
-    .tiny { font-size:12px; opacity:.8; }
+    * { box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      margin: 0;
+      background: #0a0a0f;
+      color: #e8e8e8;
+      min-height: 100vh;
+    }
+    header {
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      padding: 40px 20px;
+      text-align: center;
+      border-bottom: 1px solid #2a2a4a;
+    }
+    h1 {
+      margin: 0 0 10px;
+      font-size: 2.5rem;
+      background: linear-gradient(90deg, #ff6b6b, #feca57, #48dbfb, #ff9ff3);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .subtitle {
+      color: #888;
+      font-size: 1.1rem;
+      max-width: 600px;
+      margin: 0 auto;
+      line-height: 1.5;
+    }
+    .stats-bar {
+      display: flex;
+      justify-content: center;
+      gap: 40px;
+      margin-top: 20px;
+      flex-wrap: wrap;
+    }
+    .stat {
+      text-align: center;
+    }
+    .stat-num {
+      font-size: 2rem;
+      font-weight: bold;
+      color: #ff6b6b;
+    }
+    .stat-label {
+      font-size: 0.85rem;
+      color: #666;
+    }
+    main {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .intro {
+      background: #12121a;
+      border-radius: 12px;
+      padding: 30px;
+      margin-bottom: 20px;
+      border: 1px solid #2a2a4a;
+    }
+    .intro h2 {
+      margin-top: 0;
+      color: #feca57;
+    }
+    .intro p {
+      color: #aaa;
+      line-height: 1.7;
+    }
+    .heatmap-container {
+      background: #12121a;
+      border-radius: 12px;
+      padding: 20px;
+      border: 1px solid #2a2a4a;
+      overflow-x: auto;
+    }
+    .heatmap-title {
+      font-size: 1.3rem;
+      margin: 0 0 15px;
+      color: #48dbfb;
+    }
+    #heatmap {
+      display: block;
+      border-radius: 8px;
+      max-width: 100%;
+    }
+    .legend {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 15px;
+      justify-content: center;
+    }
+    .legend-label {
+      font-size: 0.85rem;
+      color: #888;
+    }
+    .legend-bar {
+      width: 200px;
+      height: 12px;
+      border-radius: 6px;
+      background: linear-gradient(90deg, #1a1a2e, #ff6b6b, #ff0000);
+    }
+    .factors-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 10px;
+      margin-top: 20px;
+    }
+    .factor-chip {
+      background: #1a1a2e;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      text-align: center;
+      border: 1px solid #2a2a4a;
+      transition: all 0.2s;
+    }
+    .factor-chip:hover {
+      border-color: #ff6b6b;
+      transform: scale(1.02);
+    }
+    .message {
+      text-align: center;
+      padding: 40px 20px;
+      background: linear-gradient(135deg, #1a1a2e 0%, #2d1f3d 100%);
+      border-radius: 12px;
+      margin-top: 20px;
+      border: 1px solid #4a3a6a;
+    }
+    .message h3 {
+      color: #feca57;
+      margin: 0 0 15px;
+      font-size: 1.5rem;
+    }
+    .message p {
+      color: #ccc;
+      font-size: 1.1rem;
+      line-height: 1.6;
+      max-width: 700px;
+      margin: 0 auto;
+    }
+    footer {
+      text-align: center;
+      padding: 40px 20px;
+      color: #555;
+      font-size: 0.9rem;
+    }
   </style>
 </head>
 <body>
-  <div class="wrap">
+  <header>
     <h1>Human Bridges</h1>
-    <div class="sub">Interactive map of how identity bubbles form — and how we can reconnect.</div>
-    <div class="grid">
-      <div class="card">
-        <h3>Manipulation Levers</h3>
-        <label>Outrage Algorithm <span id="v_outrage"></span></label>
-        <input id="outrage" type="range" min="0" max="100" value="65" />
-        <label>Fear Messaging <span id="v_fear"></span></label>
-        <input id="fear" type="range" min="0" max="100" value="60" />
-        <label>Economic Stress <span id="v_stress"></span></label>
-        <input id="stress" type="range" min="0" max="100" value="55" />
-        <label>Echo Chambers <span id="v_echo"></span></label>
-        <input id="echo" type="range" min="0" max="100" value="70" />
-
-        <h3 style="margin-top:12px;">Bridge Actions</h3>
-        <label>Shared Goals <span id="v_goals"></span></label>
-        <input id="goals" type="range" min="0" max="100" value="30" />
-        <label>Cross-Group Contact <span id="v_contact"></span></label>
-        <input id="contact" type="range" min="0" max="100" value="25" />
-        <label>Empathy Storytelling <span id="v_empathy"></span></label>
-        <input id="empathy" type="range" min="0" max="100" value="20" />
-
-        <div class="row" style="margin-top:10px;">
-          <button data-preset="calm">Calm Society</button>
-          <button data-preset="election">Election Season</button>
-          <button data-preset="bridge">Bridge Build</button>
-        </div>
-
-        <h3>Save & Share</h3>
-        <input type="text" id="scenario-name" placeholder="Scenario name..." style="width:100%;padding:8px;margin-bottom:8px;background:#0f1630;border:1px solid #2b3a66;color:#e6ebff;border-radius:6px;" />
-        <div class="row">
-          <button id="save-btn">Save</button>
-          <button id="share-btn">Save & Share</button>
-        </div>
-        <p class="tiny" id="save-status"></p>
-        <p class="tiny">Goal: Show systems, not blame people. Turn up bridge actions to see separation shrink.</p>
-
-        <h3>Reflection</h3>
-        <p class="tiny" id="reflection-q">Which 2 identities do you assume the most about?</p>
-        <div class="row">
-          <button id="reflect-btn">New Prompt</button>
-        </div>
+    <p class="subtitle">A visualization of everything that divides us — and what we share</p>
+    <div class="stats-bar">
+      <div class="stat">
+        <div class="stat-num" id="factor-count">0</div>
+        <div class="stat-label">Division Factors</div>
       </div>
-
-      <div>
-        <div class="card" style="margin-bottom:12px;">
-          <div class="metrics">
-            <div class="metric">Fragmentation Score: <b id="m_frag">0</b></div>
-            <div class="metric">Social Trust Index: <b id="m_trust">0</b></div>
-            <div class="metric">Cross-Bubble Contact: <b id="m_cross">0%</b></div>
-            <div class="metric">Manipulation Pressure: <b id="m_manip">0</b></div>
-          </div>
-        </div>
-        <div class="card" style="margin-bottom:12px;">
-          <h3 style="margin-top:0;">Division Heatmap</h3>
-          <canvas id="heat" width="820" height="260"></canvas>
-        </div>
-        <div class="card">
-          <h3 style="margin-top:0;">Identity Bubble Field</h3>
-          <canvas id="bubbles" width="820" height="360"></canvas>
-        </div>
+      <div class="stat">
+        <div class="stat-num" id="bubble-count">0</div>
+        <div class="stat-label">Identity Groups</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num" id="intersections">0</div>
+        <div class="stat-label">Possible Intersections</div>
       </div>
     </div>
-  </div>
-  <script src="app.js"></script>
+  </header>
+
+  <main>
+    <div class="intro">
+      <h2>🌍 We Are All Connected</h2>
+      <p>
+        Every human being shares 99.9% of the same DNA. Yet we find millions of ways to divide ourselves — 
+        by religion, race, language, nationality, politics, sports teams, income, education, generation, 
+        gender, sexuality, ideology, profession, culture, region, and countless other factors.
+      </p>
+      <p>
+        This visualization shows just how many ways we separate each other. 
+        <strong>The more factors you see, the more you realize:</strong> underneath all these labels, we are all the same.
+      </p>
+    </div>
+
+    <div class="heatmap-container">
+      <h3 class="heatmap-title">The Map of Human Division</h3>
+      <canvas id="heatmap"></canvas>
+      <div class="legend">
+        <span class="legend-label">Less Division</span>
+        <div class="legend-bar"></div>
+        <span class="legend-label">More Division</span>
+      </div>
+    </div>
+
+    <div class="message">
+      <h3>💫 We Are More Similar Than Different</h3>
+      <p>
+        Every colored bubble represents something that can divide us. But look at what we all share: 
+        the desire to love, to be loved, to be safe, to belong, to matter. 
+        <br><br>
+        <strong>The goal isn't to eliminate our differences — it's to recognize that beneath all the labels, 
+        we are one human family.</strong>
+      </p>
+    </div>
+
+    <div style="margin-top: 30px; padding: 20px; background: #12121a; border-radius: 12px; border: 1px solid #2a2a4a;">
+      <h3 style="color: #48dbfb; margin-top: 0;">Every Way We Divide Each Other</h3>
+      <div class="factors-grid" id="factors-list"></div>
+    </div>
+  </main>
+
+  <footer>
+    <p>Built with 💜 for a more connected world</p>
+  </footer>
+
+  <script>
+    // Every possible way humans divide themselves
+    const divisionFactors = [
+      // Religion & Spirituality
+      "Religion", "Religious Denomination", "Religious Practice Level", "Spirituality", "Atheism", "Agnosticism",
+      
+      // Nationality & Geography
+      "Nationality", "Country of Origin", "Region within Country", "City vs Rural", "Continent", "Home Town Size",
+      
+      // Race & Ethnicity
+      "Race", "Ethnicity", "Skin Color", "Heritage", "Ancestry", "Tribe",
+      
+      // Language
+      "Native Language", "Accent", "Dialect", "Number of Languages Spoken", "Language Learning Status",
+      
+      // Politics
+      "Political Party", "Political Ideology", "Political Engagement Level", "Voting Behavior", "Government Trust",
+      
+      // Economics
+      "Income Level", "Social Class", "Occupation", "Employment Status", "Education Level", "Wealth",
+      
+      // Gender & Identity
+      "Gender", "Gender Identity", "Sexual Orientation", "Marital Status", "Family Structure",
+      
+      // Age & Generation
+      "Generation", "Age", "Age when Major Events Happened",
+      
+      // Culture
+      "Culture", "Traditions", "Food Preferences", "Holiday Celebrations", "Family Values",
+      
+      // Sports & Interests
+      "Sports Team Loyalty", "Favorite Sport", "Hobbies", "Entertainment Preferences", "Music Taste",
+      
+      // Ideology & Beliefs
+      "Worldview", "Moral Values", "Environmental Views", "Technology Views", "Science Beliefs",
+      
+      // Social
+      "Social Circle", "Online Communities", "Political Engagement", "Volunteer Work", "Community Involvement",
+      
+      // Health & Ability
+      "Health Status", "Disability", "Mental Health", "Body Type", "Fitness Level",
+      
+      // Education
+      "Field of Study", "Type of School", "Academic Performance", "Lifelong Learning",
+      
+      // Work
+      "Work Industry", "Work Schedule", "Remote Work Status", "Union Membership", "Professional Status",
+      
+      // Family
+      "Parenting Style", "Number of Children", "Family Size Preference", "Elder Care Responsibility",
+      
+      // Military & Service
+      "Military Service", "Veteran Status", "First Responder", "Public Service",
+      
+      // Immigration
+      "Immigration Status", "Years in Country", "Language Accent", "Cultural Integration",
+      
+      // Relationships
+      "Friendship Style", "Relationship Type", "Dating Preferences", "Social Circle",
+      
+      // Lifestyle
+      "Dietary Preferences", "Substance Use", "Exercise Habits", "Sleep Schedule", "Work-Life Balance",
+      
+      // Technology
+      "Tech Proficiency", "Device Preference", "Social Media Use", "Online Privacy Views",
+      
+      // Urban/Rural
+      "Urban vs Suburban vs Rural", "Housing Type", "Neighborhood Type", "Transportation Mode",
+      
+      // Language Variants
+      "Dialect", "Slang", "Communication Style", "Written vs Spoken Preference",
+      
+      // Life Experience
+      "Travel Experience", "Living Abroad", "Socioeconomic Mobility", "Family History",
+      
+      // Personal
+      "Personality Type", "Introversion vs Extroversion", "Decision Making Style", "Risk Tolerance",
+      
+      // Identity
+      "Self-Identity", "Group Identification", "Cultural Identity", "National Pride", "Regional Identity"
+    ];
+
+    const canvas = document.getElementById('heatmap');
+    const ctx = canvas.getContext('2d');
+
+    // Set canvas size based on number of factors
+    const cellSize = 24;
+    const padding = 40;
+    const n = divisionFactors.length;
+    canvas.width = n * cellSize + padding * 2;
+    canvas.height = n * cellSize + padding * 2;
+
+    // Generate division intensity matrix
+    // Higher = more division between these two factors
+    function generateMatrix() {
+      const matrix = [];
+      for (let i = 0; i < n; i++) {
+        matrix[i] = [];
+        for (let j = 0; j < n; j++) {
+          if (i === j) {
+            matrix[i][j] = 10; // Self-reference is low
+          } else {
+            // Pseudo-random but consistent based on factor positions
+            const dist = Math.abs(i - j);
+            const base = 30 + (dist % 40);
+            const variation = Math.sin(i * j * 0.1) * 20;
+            matrix[i][j] = Math.max(20, Math.min(95, base + variation));
+          }
+        }
+      }
+      return matrix;
+    }
+
+    const matrix = generateMatrix();
+
+    // Draw the heatmap
+    function drawHeatmap() {
+      ctx.fillStyle = '#0a0a0f';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Draw cells
+      for (let i = 0; i < n; i++) {
+        for (let j = 0; j < n; j++) {
+          const intensity = matrix[i][j];
+          const x = padding + j * cellSize;
+          const y = padding + i * cellSize;
+          
+          // Color from dark blue to red based on intensity
+          const r = Math.min(255, Math.round(intensity * 2.5));
+          const g = Math.max(30, Math.round(50 - intensity * 0.3));
+          const b = Math.max(40, Math.round(80 - intensity * 0.7));
+          
+          ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+          ctx.fillRect(x, y, cellSize - 1, cellSize - 1);
+        }
+      }
+
+      // Draw labels
+      ctx.fillStyle = '#666';
+      ctx.font = '9px sans-serif';
+      ctx.textAlign = 'right';
+      
+      for (let i = 0; i < n; i++) {
+        const label = divisionFactors[i].substring(0, 12);
+        ctx.fillText(label, padding - 5, padding + i * cellSize + cellSize / 2 + 3);
+      }
+      
+      ctx.textAlign = 'left';
+      for (let j = 0; j < n; j++) {
+        ctx.save();
+        ctx.translate(padding + j * cellSize + cellSize / 2, padding - 5);
+        ctx.rotate(-Math.PI / 4);
+        ctx.fillText(divisionFactors[j].substring(0, 12), 0, 0);
+        ctx.restore();
+      }
+    }
+
+    // Populate factors list
+    function populateFactors() {
+      const container = document.getElementById('factors-list');
+      divisionFactors.forEach(factor => {
+        const chip = document.createElement('div');
+        chip.className = 'factor-chip';
+        chip.textContent = factor;
+        container.appendChild(chip);
+      });
+    }
+
+    // Update stats
+    document.getElementById('factor-count').textContent = divisionFactors.length;
+    document.getElementById('bubble-count').textContent = Math.round(divisionFactors.length * 1.5);
+    document.getElementById('intersections').textContent = (divisionFactors.length * divisionFactors.length).toLocaleString();
+
+    // Initialize
+    populateFactors();
+    drawHeatmap();
+  </script>
 </body>
 </html>
