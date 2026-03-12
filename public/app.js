@@ -4,6 +4,7 @@ const groups = [
   {name:'Language', size:16}, {name:'Class', size:20}, {name:'Ethnicity', size:21}, {name:'Nation', size:19}
 ];
 
+const API_BASE = '';
 const ids = ['outrage','fear','stress','echo','goals','contact','empathy'];
 const el = Object.fromEntries(ids.map(i=>[i,document.getElementById(i)]));
 const out = {
@@ -110,6 +111,54 @@ function setPreset(name){
   const p=presets[name]; if(!p) return; ids.forEach(i=>el[i].value=p[i]);
 }
 
+const reflections = [
+  "Which 2 identities do you assume the most about?",
+  "What common need exists across all bubbles?",
+  "Who in your life crosses these lines?",
+  "What would change if you talked to someone different?",
+  "What shared goals could bring groups together?",
+  "When did you last feel connected to a stranger?",
+  "What story changed how you see another group?",
+  "What would your ideal connected community look like?"
+];
+
+function nextReflection(){
+  const r = reflections[Math.floor(Math.random() * reflections.length)];
+  document.getElementById('reflection-q').textContent = r;
+}
+
+function getCurrentState() {
+  const s = {};
+  ids.forEach(i => s[i] = Number(el[i].value));
+  return s;
+}
+
+async function saveScenario(name, share) {
+  const state = getCurrentState();
+  const payload = { name: name || 'Untitled', state };
+  const res = await fetch('/api/scenarios', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+  if (!res.ok) {
+    document.getElementById('save-status').textContent = 'Failed to save';
+    return;
+  }
+  const data = await res.json();
+  if (share) {
+    const shareRes = await fetch(`/api/scenarios/${data.scenario.id}/share`, { method: 'POST' });
+    const shareData = await shareRes.json();
+    const url = window.location.origin + '/api/share/' + shareData.share.token;
+    document.getElementById('save-status').innerHTML = `Saved! <a href="${url}" target="_blank" style="color:#2c79ff;">Share link</a>`;
+  } else {
+    document.getElementById('save-status').textContent = 'Saved!';
+  }
+}
+
 document.querySelectorAll('button[data-preset]').forEach(b=>b.onclick=()=>setPreset(b.dataset.preset));
+document.getElementById('reflect-btn').onclick = nextReflection;
+document.getElementById('save-btn').onclick = () => saveScenario(document.getElementById('scenario-name').value, false);
+document.getElementById('share-btn').onclick = () => saveScenario(document.getElementById('scenario-name').value, true);
 ids.forEach(i=>el[i].addEventListener('input',()=>{}));
 render();

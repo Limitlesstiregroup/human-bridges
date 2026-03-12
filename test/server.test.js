@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs/promises');
 const path = require('node:path');
 
-const { createServer, DEFAULT_STATE_KEYS } = require('../server');
+const { createServer, startServer, DEFAULT_STATE_KEYS, initDb, ensureDataDir } = require('../server');
 
 const DATA_DIR = path.join(__dirname, '..', 'data');
 
@@ -13,6 +13,8 @@ function baseState() {
 
 async function setup() {
   await fs.rm(DATA_DIR, { recursive: true, force: true });
+  await ensureDataDir();
+  initDb();
   const server = createServer();
   await new Promise((resolve) => server.listen(0, resolve));
   const address = server.address();

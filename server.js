@@ -1,44 +1,62 @@
 const http = require('node:http');
-const fs = require('node:fs/promises');
 const path = require('node:path');
 const crypto = require('node:crypto');
+const Database = require('better-sqlite3');
 
 const PUBLIC_DIR = path.join(__dirname, 'public');
 const DATA_DIR = path.join(__dirname, 'data');
-const SCENARIOS_FILE = path.join(DATA_DIR, 'scenarios.json');
-const SHARES_FILE = path.join(DATA_DIR, 'shares.json');
-const REPORTS_FILE = path.join(DATA_DIR, 'reports.json');
+const DB_PATH = path.join(DATA_DIR, 'human-bridges.db');
 
 const DEFAULT_STATE_KEYS = ['outrage', 'fear', 'stress', 'echo', 'goals', 'contact', 'empathy'];
+
+let db;
+
+function initDb() {
+  db = new Database(DB_PATH);
+  db.pragma('journal_mode = WAL');
+  
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS scenarios (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      notes TEXT DEFAULT '',
+      state TEXT NOT NULL,
+      reports_count INTEGER DEFAULT 0,
+      flagged INTEGER DEFAULT 0,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+    
+    CREATE TABLE IF NOT EXISTS shares (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      token TEXT UNIQUE NOT NULL,
+      scenario_id TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      FOREIGN KEY (scenario_id) REFERENCES scenarios(id)
+    );
+    
+    CREATE TABLE IF NOT EXISTS reports (
+      id TEXT PRIMARY KEY,
+      scenario_id TEXT NOT NULL,
+      share_token TEXT,
+      reason TEXT NOT NULL,
+      details TEXT DEFAULT '',
+      created_at TEXT NOT NULL,
+      FOREIGN KEY (scenario_id) REFERENCES scenarios(id)
+    );
+    
+    CREATE INDEX IF NOT EXISTS idx_shares_token ON shares(token);
+    CREATE INDEX IF NOT EXISTS idx_reports_scenario ON reports(scenario_id);
+  `);
+}
 
 function randomId(prefix) {
   return `${prefix}_${crypto.randomBytes(8).toString('hex')}`;
 }
 
-async function ensureDataFiles() {
+async function ensureDataDir() {
+  const fs = require('node:fs/promises');
   await fs.mkdir(DATA_DIR, { recursive: true });
-  await Promise.all([
-    ensureJsonFile(SCENARIOS_FILE, []),
-    ensureJsonFile(SHARES_FILE, []),
-    ensureJsonFile(REPORTS_FILE, []),
-  ]);
-}
-
-async function ensureJsonFile(file, fallback) {
-  try {
-    await fs.access(file);
-  } catch {
-    await fs.writeFile(file, JSON.stringify(fallback, null, 2));
-  }
-}
-
-async function readJson(file) {
-  const raw = await fs.readFile(file, 'utf8');
-  return JSON.parse(raw);
-}
-
-async function writeJson(file, value) {
-  await fs.writeFile(file, JSON.stringify(value, null, 2));
 }
 
 function validateState(state) {
@@ -95,6 +113,7 @@ const MIME = {
 };
 
 async function serveStatic(pathname, res) {
+  const fs = require('node:fs/promises');
   const rel = pathname === '/' ? '/index.html' : pathname;
   const filePath = path.resolve(PUBLIC_DIR, "." + rel);
   if (!filePath.startsWith(PUBLIC_DIR + path.sep) && filePath !== path.join(PUBLIC_DIR, 'index.html')) {
@@ -119,7 +138,33 @@ async function serveStatic(pathname, res) {
 
 function createServer() {
   return http.createServer(async (req, res) => {
-    await ensureDataFiles();
+    // Health check endpoint
+    if (req.method === 'GET' && req.url === '/health') {
+      const scenarioCount = db.prepare('SELECT COUNT(*) as count FROM scenarios').get();
+      const shareCount = db.prepare('SELECT COUNT(*) as count FROM shares').get();
+      const reportCount = db.prepare('SELECT COUNT(*) as count FROM reports').get();
+      return sendJson(res, 200, { 
+        status: 'ok', 
+        timestamp: new Date().toISOString(),
+        metrics: {
+          scenarios: scenarioCount.count,
+          shares: shareCount.count,
+          reports: reportCount.count
+        }
+      });
+    }
+
+    // Metrics endpoint for dashboard
+    if (req.method === 'GET' && pathname === '/api/metrics') {
+      const total = db.prepare('SELECT COUNT(*) as count FROM scenarios').get();
+      const flagged = db.prepare('SELECT COUNT(*) as count FROM scenarios WHERE flagged = 1').get();
+      const recent = db.prepare('SELECT COUNT(*) as count FROM scenarios WHERE created_at > datetime("now", "-7 days")').get();
+      return sendJson(res, 200, {
+        total: total.count,
+        flagged: flagged.count,
+        lastWeek: recent.count
+      });
+    }
 
     const url = new URL(req.url, 'http://localhost');
     const pathname = url.pathname;
@@ -143,50 +188,71 @@ function createServer() {
         updatedAt: now,
       };
 
-      const scenarios = await readJson(SCENARIOS_FILE);
-      scenarios.push(scenario);
-      await writeJson(SCENARIOS_FILE, scenarios);
+      const stmt = db.prepare(`
+        INSERT INTO scenarios (id, name, notes, state, reports_count, flagged, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      `);
+      stmt.run(scenario.id, scenario.name, scenario.notes, JSON.stringify(scenario.state), 0, 0, now, now);
+      
       return sendJson(res, 201, { scenario });
     }
 
     const scenarioGet = matchRoute('/api/scenarios/:id', pathname);
     if (req.method === 'GET' && scenarioGet) {
-      const scenarios = await readJson(SCENARIOS_FILE);
-      const scenario = scenarios.find((item) => item.id === scenarioGet.id);
-      if (!scenario) return sendJson(res, 404, { error: 'scenario not found' });
+      const stmt = db.prepare('SELECT * FROM scenarios WHERE id = ?');
+      const row = stmt.get(scenarioGet.id);
+      if (!row) return sendJson(res, 404, { error: 'scenario not found' });
+      const scenario = {
+        id: row.id,
+        name: row.name,
+        notes: row.notes,
+        state: JSON.parse(row.state),
+        reportsCount: row.reports_count,
+        flagged: Boolean(row.flagged),
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
+      };
       return sendJson(res, 200, { scenario });
     }
 
     const scenarioShare = matchRoute('/api/scenarios/:id/share', pathname);
     if (req.method === 'POST' && scenarioShare) {
-      const scenarios = await readJson(SCENARIOS_FILE);
-      const scenario = scenarios.find((item) => item.id === scenarioShare.id);
-      if (!scenario) return sendJson(res, 404, { error: 'scenario not found' });
+      const stmt = db.prepare('SELECT * FROM scenarios WHERE id = ?');
+      const row = stmt.get(scenarioShare.id);
+      if (!row) return sendJson(res, 404, { error: 'scenario not found' });
 
-      const shares = await readJson(SHARES_FILE);
-      const share = {
-        token: randomId('shr'),
-        scenarioId: scenario.id,
-        createdAt: new Date().toISOString(),
-      };
-      shares.push(share);
-      await writeJson(SHARES_FILE, shares);
+      const now = new Date().toISOString();
+      const token = randomId('shr');
+      const shareStmt = db.prepare('INSERT INTO shares (token, scenario_id, created_at) VALUES (?, ?, ?)');
+      shareStmt.run(token, row.id, now);
 
       return sendJson(res, 201, {
-        share,
-        shareUrl: `/api/share/${share.token}`,
+        share: { token, scenarioId: row.id, createdAt: now },
+        shareUrl: `/api/share/${token}`,
       });
     }
 
     const shareGet = matchRoute('/api/share/:token', pathname);
     if (req.method === 'GET' && shareGet) {
-      const shares = await readJson(SHARES_FILE);
-      const entry = shares.find((item) => item.token === shareGet.token);
-      if (!entry) return sendJson(res, 404, { error: 'share link not found' });
-      const scenarios = await readJson(SCENARIOS_FILE);
-      const scenario = scenarios.find((item) => item.id === entry.scenarioId);
-      if (!scenario) return sendJson(res, 404, { error: 'scenario not found' });
-      return sendJson(res, 200, { scenario, share: entry });
+      const shareStmt = db.prepare('SELECT * FROM shares WHERE token = ?');
+      const shareRow = shareStmt.get(shareGet.token);
+      if (!shareRow) return sendJson(res, 404, { error: 'share link not found' });
+      
+      const scenarioStmt = db.prepare('SELECT * FROM scenarios WHERE id = ?');
+      const scenarioRow = scenarioStmt.get(shareRow.scenario_id);
+      if (!scenarioRow) return sendJson(res, 404, { error: 'scenario not found' });
+
+      const scenario = {
+        id: scenarioRow.id,
+        name: scenarioRow.name,
+        notes: scenarioRow.notes,
+        state: JSON.parse(scenarioRow.state),
+        reportsCount: scenarioRow.reports_count,
+        flagged: Boolean(scenarioRow.flagged),
+        createdAt: scenarioRow.created_at,
+        updatedAt: scenarioRow.updated_at,
+      };
+      return sendJson(res, 200, { scenario, share: { token: shareRow.token, createdAt: shareRow.created_at } });
     }
 
     if (req.method === 'POST' && pathname === '/api/reports') {
@@ -199,42 +265,46 @@ function createServer() {
         return sendJson(res, 400, { error: 'scenarioId or shareToken is required' });
       }
 
-      const scenarios = await readJson(SCENARIOS_FILE);
       let scenarioId = body.scenarioId;
       if (!scenarioId && body.shareToken) {
-        const shares = await readJson(SHARES_FILE);
-        const share = shares.find((item) => item.token === body.shareToken);
-        if (!share) return sendJson(res, 404, { error: 'share link not found' });
-        scenarioId = share.scenarioId;
+        const shareStmt = db.prepare('SELECT * FROM shares WHERE token = ?');
+        const shareRow = shareStmt.get(body.shareToken);
+        if (!shareRow) return sendJson(res, 404, { error: 'share link not found' });
+        scenarioId = shareRow.scenario_id;
       }
 
-      const scenario = scenarios.find((item) => item.id === scenarioId);
-      if (!scenario) return sendJson(res, 404, { error: 'scenario not found' });
+      const scenarioStmt = db.prepare('SELECT * FROM scenarios WHERE id = ?');
+      const scenarioRow = scenarioStmt.get(scenarioId);
+      if (!scenarioRow) return sendJson(res, 404, { error: 'scenario not found' });
 
+      const now = new Date().toISOString();
+      const reportId = randomId('rpt');
       const report = {
-        id: randomId('rpt'),
+        id: reportId,
         scenarioId,
         shareToken: body.shareToken || null,
         reason,
         details: typeof body.details === 'string' ? body.details.trim() : '',
-        createdAt: new Date().toISOString(),
+        createdAt: now,
       };
 
-      const reports = await readJson(REPORTS_FILE);
-      reports.push(report);
-      await writeJson(REPORTS_FILE, reports);
+      const reportStmt = db.prepare(`
+        INSERT INTO reports (id, scenario_id, share_token, reason, details, created_at)
+        VALUES (?, ?, ?, ?, ?, ?)
+      `);
+      reportStmt.run(report.id, scenarioId, report.shareToken, report.reason, report.details, now);
 
-      scenario.reportsCount += 1;
-      scenario.flagged = scenario.reportsCount >= 3;
-      scenario.updatedAt = new Date().toISOString();
-      await writeJson(SCENARIOS_FILE, scenarios);
+      const newCount = scenarioRow.reports_count + 1;
+      const flagged = newCount >= 3 ? 1 : 0;
+      const updateStmt = db.prepare('UPDATE scenarios SET reports_count = ?, flagged = ?, updated_at = ? WHERE id = ?');
+      updateStmt.run(newCount, flagged, now, scenarioId);
 
       return sendJson(res, 201, {
         report,
         moderation: {
           scenarioId,
-          reportsCount: scenario.reportsCount,
-          flagged: scenario.flagged,
+          reportsCount: newCount,
+          flagged: Boolean(flagged),
         },
       });
     }
@@ -251,10 +321,13 @@ function startServer(port = Number(process.env.PORT || 4380)) {
 }
 
 if (require.main === module) {
-  const port = Number(process.env.PORT || 4380);
-  startServer(port).then(() => {
+  (async () => {
+    await ensureDataDir();
+    initDb();
+    const port = Number(process.env.PORT || 4380);
+    await startServer(port);
     process.stdout.write(`Human Bridges server running on http://localhost:${port}\n`);
-  });
+  })();
 }
 
-module.exports = { createServer, startServer, DEFAULT_STATE_KEYS };
+module.exports = { createServer, startServer, DEFAULT_STATE_KEYS, initDb, ensureDataDir };
