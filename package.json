@@ -8,8 +8,5 @@
     "build": "node --check server.js && node --check public/app.js",
     "lint": "npm run build",
     "test": "node --test"
-  },
-  "dependencies": {
-    "better-sqlite3": "^12.6.2"
   }
 }
